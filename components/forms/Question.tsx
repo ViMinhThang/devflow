@@ -152,7 +152,7 @@ const Question = ({ mongoUserId }: Props) => {
                       { value: "First.Name", title: "First Name" },
                       { value: "Email", title: "Email" },
                     ],
-                    ai_request: (request, respondWith) =>
+                    ai_request: (request: any, respondWith: any) =>
                       respondWith.string(() =>
                         Promise.reject("See docs to implement AI Assistant")
                       ),
