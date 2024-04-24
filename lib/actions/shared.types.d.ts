@@ -130,5 +130,5 @@ export interface GetUserStatsParams {
   pageSize?: number;
 }
 export interface DeleteUserParams {
-  clerkId: string;
+  clerkId?: string;
 }
