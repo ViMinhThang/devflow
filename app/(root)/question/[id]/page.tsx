@@ -1,16 +1,27 @@
 import Answer from "@/components/forms/Answer";
+import AllAnswers from "@/components/share/AllAnswers";
 import Metric from "@/components/share/Metric";
 import ParseHTML from "@/components/share/ParseHTML";
 import RenderTag from "@/components/share/RenderTag";
+import Votes from "@/components/share/Votes";
 import { getQuestionById } from "@/lib/actions/question.action";
+import { getUserById } from "@/lib/actions/user.action";
 import { formatAndDivideNumber, getTimestamp } from "@/lib/utils";
+import { auth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
+import { title } from "process";
 import React from "react";
 
-const page = async ({ params, searchParams }) => {
+const Page = async ({ params, searchParams }) => {
+  const { userId: clerkId } = auth();
   const result = await getQuestionById({ questionId: params.id });
+  console.log({ result });
+  let mongoUser;
 
+  if (clerkId) {
+    mongoUser = await getUserById({ userId: clerkId });
+  }
   return (
     <>
       <div className="flex-start w-full flex-col">
@@ -30,36 +41,50 @@ const page = async ({ params, searchParams }) => {
               {result.author.name}
             </p>
           </Link>
-          <div className="flex justify-end">VOTING</div>
+          <div className="flex justify-end">
+            <Votes
+              type="Question"
+              itemId={JSON.stringify(result._id)}
+              userId={JSON.stringify(mongoUser._id)}
+              upvotes={result.upvotes.length}
+              hasupVoted={result.upvotes.includes(mongoUser._id)}
+              downvotes={result.downvotes.length}
+              hasdownVoted={result.downvotes.includes(mongoUser._id)}
+              hasSaved={mongoUser?.saved.includes(result._id)}
+            />
+          </div>
         </div>
         <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full text-left">
           {result.title}
         </h2>
       </div>
+
       <div className="mb-8 mt-5 flex flex-wrap gap-4">
         <Metric
           imgUrl="/assets/icons/clock.svg"
-          alt="Clock icon"
-          value={`asked ${getTimestamp(result.createdAt)}`}
-          title="Asked"
+          alt="clock icon"
+          value={` asked ${getTimestamp(result.createdAt)}`}
+          title=" Asked"
           textStyles="small-medium text-dark400_light800"
         />
         <Metric
           imgUrl="/assets/icons/message.svg"
           alt="message"
           value={formatAndDivideNumber(result.answers.length)}
-          title="Answers"
+          title=" Answers"
           textStyles="small-medium text-dark400_light800"
         />
         <Metric
           imgUrl="/assets/icons/eye.svg"
           alt="eye"
           value={formatAndDivideNumber(result.views)}
-          title="Views"
+          title=" Views"
           textStyles="small-medium text-dark400_light800"
         />
       </div>
+
       <ParseHTML data={result.content} />
+
       <div className="mt-8 flex flex-wrap gap-2">
         {result.tags.map((tag: any) => (
           <RenderTag
@@ -70,9 +95,20 @@ const page = async ({ params, searchParams }) => {
           />
         ))}
       </div>
-      <Answer />
+
+      <AllAnswers
+        questionId={result._id}
+        userId={mongoUser._id}
+        totalAnswers={result.answers.length}
+      />
+
+      <Answer
+        question={result.content}
+        questionId={JSON.stringify(result._id)}
+        authorId={JSON.stringify(mongoUser._id)}
+      />
     </>
   );
 };
 
-export default page;
+export default Page;

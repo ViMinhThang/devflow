@@ -41,7 +41,7 @@ body {
     );
   }
   .tab {
-    @apply min-h-full dark:bg-dark-400 bg-light-800 text-light-5;
+    @apply min-h-full dark:bg-dark-400 bg-light-800 text-light-500 dark:data-[state=active]:bg-dark-300 data-[state=active]:bg-primary-100 data-[state=active]:text-primary-500 !important;
   }
 }
 .no-focus {
@@ -55,7 +55,8 @@ body {
     brightness(104%) contrast(106%) !important;
 }
 .light-gradient {
-  background: linear-gradient(132deg) rgba(247, 249, 255, 0.5) 0%,
+  background:
+    linear-gradient(132deg) rgba(247, 249, 255, 0.5) 0%,
     rgba(229, 237, 255, 0.25) 100%;
 }
 .primary-text-gradient {
