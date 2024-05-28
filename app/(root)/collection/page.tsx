@@ -2,19 +2,26 @@ import QuestionCard from "@/components/cards/QuestionCard";
 import HomeFilters from "@/components/home/HomeFilters";
 import Filter from "@/components/share/Filter";
 import NoResult from "@/components/share/NoResult";
+import Pagination from "@/components/share/Pagination";
 import LocalSearchbar from "@/components/share/search/LocalSearchbar";
 import { Button } from "@/components/ui/button";
 import { HomePageFilters, QuestionFilters } from "@/constants/filters";
 import { getQuestions } from "@/lib/actions/question.action";
 import { getSavedQuestions } from "@/lib/actions/user.action";
+import { SearchParamsProps } from "@/types";
 import { UserButton, auth } from "@clerk/nextjs";
 import Link from "next/link";
 
-export default async function Home() {
+export default async function Home({ searchParams }: SearchParamsProps) {
   const { userId } = auth();
 
   if (!userId) return null;
-  const result = await getSavedQuestions({ clerkId: userId });
+  const result = await getSavedQuestions({
+    clerkId: userId,
+    searchQuery: searchParams.q,
+    filter: searchParams.filter,
+    page: searchParams.page ? +searchParams.page : 1,
+  });
 
   return (
     <>
@@ -58,6 +65,12 @@ export default async function Home() {
             linkTitle="Ask a Question"
           />
         )}
+      </div>
+      <div className="mt-10">
+        <Pagination
+          pageNumber={searchParams?.page ? +searchParams.page : 1}
+          isNext={result.isNext}
+        />
       </div>
     </>
   );
