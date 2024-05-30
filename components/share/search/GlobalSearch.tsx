@@ -24,6 +24,7 @@ const GlobalSearch = () => {
         setSearch("");
       }
     };
+    setIsOpen(false)
     document.addEventListener("click", handleOutsideClick);
     return () => {
       document.removeEventListener("click", handleOutsideClick);

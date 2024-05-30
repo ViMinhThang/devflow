@@ -89,10 +89,19 @@ export async function createQuestion(params: CreateQuestionParams) {
     });
 
     //Create an interaction record for the user's ask question
-
+    await interaction.create({
+      user: author,
+      action: "ask_question",
+      question: question._id,
+      tags: tagDocuments,
+    });
+    await User.findByIdAndUpdate(author, { $inc: { reputation: 5 } });
     //Inrement author's reputation by +5 for creating a question
     revalidatePath(path);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 }
 export async function getQuestionById(params: GetQuestionByIdParams) {
   console.log("paramas", params);
@@ -151,7 +160,14 @@ export async function upvoteQuestion(params: QuestionVoteParams) {
       throw new Error("Question not found");
     }
 
-    // Increment author's reputation
+    // Increment author's reputation by +1/-1 for upvoting/revoking an upvote to the question
+    await User.findByIdAndUpdate(userId, {
+      $inc: { reputation: hasupVoted ? -1 : 1 },
+    });
+
+    await User.findByIdAndUpdate(question.author, {
+      $inc: { reputation: hasupVoted ? -10 : 10 },
+    });
 
     revalidatePath(path);
   } catch (error) {
@@ -188,6 +204,14 @@ export async function downvoteQuestion(params: QuestionVoteParams) {
 
     // Increment author's reputation
 
+    await User.findByIdAndUpdate(userId, {
+      $inc: { reputation: hasdownVoted ? -2 : 2 },
+    });
+
+    await User.findByIdAndUpdate(question.author, {
+      $inc: { reputation: hasdownVoted ? -10 : 10 },
+    });
+
     revalidatePath(path);
   } catch (error) {
     console.log(error);
@@ -216,7 +240,7 @@ export async function deleteQuestion(params: DeleteQuestionParams) {
 export async function editQuestion(params: EditQuestionParams) {
   try {
     connectToDatabase();
-    const { questionId, title, content, tags, path } = params;
+    const { questionId, title, content, path } = params;
     const question = await Question.findById(questionId).populate("tags");
     if (!question) {
       throw new Error("Question not found");
